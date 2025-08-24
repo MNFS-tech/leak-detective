@@ -54,16 +54,39 @@ function countNightSpikes(data:DataPoint[]){let spikes=0;for(let d=0;d<7;d++){fo
 function longestPlateau(data:DataPoint[]){let maxLen=0,cur=0;for(const p of data){if(p.flow>=2.2&&p.flow<=2.8){cur++;maxLen=Math.max(maxLen,cur);}else cur=0;}return maxLen;}
 
 // ---------- Hints & Scoring ----------
-function deriveHints(avgNightMin:number, nightSpikes:number, plateauBins:number, difficulty:Difficulty){
-  if(difficulty==='Hard') return [];
-  const hints:string[]=[];
-  if(avgNightMin>0.6 && difficulty!=='Hard') hints.push('Nightline MNF suggests background leak (> 0.6 L/min).');
-  if(nightSpikes>10 && difficulty==='Easy') hints.push('Frequent night spikes → suspect toilet flapper.');
-  if(plateauBins>6 && difficulty==='Easy') hints.push('Long midday plateau ~2.5 L/min → suspect roof-tank overflow.');
-  if(avgNightMin>0.5 && nightSpikes<3 && difficulty==='Easy') hints.push('High MNF without spikes → continuous background (pipe) leak.');
-  if(hints.length===0 && difficulty!=='Hard') hints.push('No strong signals — consider options.');
+function deriveHints(
+  avgNightMin: number,
+  nightSpikes: number,
+  plateauBins: number,
+  difficulty: Difficulty
+) {
+  // Hard: no hints
+  if (difficulty === "Hard") return [];
+
+  const hints: string[] = [];
+  const isEasy = difficulty === "Easy";
+  const isMedium = difficulty === "Medium";
+
+  // General hint (applies to Easy & Medium)
+  if (avgNightMin > 0.6) {
+    hints.push("Nightline MNF suggests background leak (> 0.6 L/min).");
+  }
+
+  // Extra hints only on Easy
+  if (isEasy && nightSpikes > 10) {
+    hints.push("Frequent night spikes → suspect toilet flapper.");
+  }
+  if (isEasy && plateauBins > 6) {
+    hints.push("Long midday plateau ~2.5 L/min → suspect roof-tank overflow.");
+  }
+  if (isEasy && avgNightMin > 0.5 && nightSpikes < 3) {
+    hints.push("High MNF without spikes → continuous background (pipe) leak.");
+  }
+
+  if (hints.length === 0) hints.push("No strong signals — consider options.");
   return hints;
 }
+
 function scoreCategory(score:number){
   if(score>=90) return {tier:'Master Detective', color:'bg-emerald-600', sub:'Stellar diagnostics.', emoji:'🎉'};
   if(score>=75) return {tier:'Great Inspector', color:'bg-emerald-500', sub:'Strong call.', emoji:'🥳'};
