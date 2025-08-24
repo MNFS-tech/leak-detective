@@ -212,27 +212,30 @@ export default function LeakDetective(){
     setVerdict(`Score ${total}/100`);
   }
 
-  const selfTests = useMemo(()=>{
-    const out: {name:string, pass:boolean, detail?:string}[] = [];
-    const c = genCase({difficulty:'Easy', seed:42});
-    out.push({name:'timeseries length 7×48', pass:c.data.length===7*48, detail:String(c.data.length)});
-    out.push({name:'clamp bounds', pass: clamp(10,0,5)===5 && clamp(-2,0,5)===0});
-    out.push({name:'nightMinFlow number', pass: typeof nightMinFlow(c.data)==='number'});
-    out.push({name:'countNightSpikes number', pass: typeof countNightSpikes(c.data)==='number'});
-    out.push({name:'longestPlateau number', pass: typeof longestPlateau(c.data)==='number'});
-    const d2 = genCase({difficulty:'Medium', seed:7});
-    const flags = ['leakToilet','leakBackground','leakIrrigation','leakTank','noLeak'] as const;
-    const ones = flags.map(f=> (d2.truth as any)[f]?1:0).reduce((a,b)=>a+b,0);
-    out.push({name:'truth one-hot', pass: ones===1, detail:`sum=${ones}`});
-    const flows = c.data.map(p=>p.flow);
-    out.push({name:'flow ≥ 0', pass: Math.min(...flows) >= 0});
-    out.push({name:'flow ≤ 8', pass: Math.max(...flows) <= 8});
-    out.push({name:'normalize 70 → 100', pass: normalizeTo100(70)===100});
-    out.push({name:'normalize 0 → 0', pass: normalizeTo100(0)===0});
-    out.push({name:'normalize −10 → 0', pass: normalizeTo100(-10)===0});
-    out.push({name:'normalize 35 → 50', pass: normalizeTo100(35)===50});
-    return out;
-  },[]);
+const selfTests = useMemo(()=>{
+  const out: {name:string, pass:boolean, detail?:string}[] = [];
+  const c = genCase({difficulty:'Easy', seed:42});
+  out.push({name:'timeseries length 7×48', pass:c.data.length===7*48, detail:String(c.data.length)});
+  out.push({name:'clamp bounds', pass: clamp(10,0,5)===5 && clamp(-2,0,5)===0});
+  out.push({name:'nightMinFlow number', pass: typeof nightMinFlow(c.data)==='number'});
+  out.push({name:'countNightSpikes number', pass: typeof countNightSpikes(c.data)==='number'});
+  out.push({name:'longestPlateau number', pass: typeof longestPlateau(c.data)==='number'});
+
+  const d2 = genCase({difficulty:'Medium', seed:7});
+  const flags = ['leakToilet','leakBackground','leakIrrigation','leakTank','noLeak'] as const;
+  const ones = flags.reduce<number>((sum, f) => sum + ((d2.truth as any)[f] ? 1 : 0), 0);
+  out.push({name:'truth one-hot', pass: ones===1, detail:`sum=${ones}`});
+
+  const flows = c.data.map(p=>p.flow);
+  out.push({name:'flow ≥ 0', pass: Math.min(...flows) >= 0});
+  out.push({name:'flow ≤ 8', pass: Math.max(...flows) <= 8});
+  out.push({name:'normalize 70 → 100', pass: normalizeTo100(70)===100});
+  out.push({name:'normalize 0 → 0', pass: normalizeTo100(0)===0});
+  out.push({name:'normalize −10 → 0', pass: normalizeTo100(-10)===0});
+  out.push({name:'normalize 35 → 50', pass: normalizeTo100(35)===50});
+  return out;
+},[]);
+
 
   return (
     <div className="p-6 grid gap-6 xl:grid-cols-3">
